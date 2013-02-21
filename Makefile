@@ -8,12 +8,22 @@ LD = $(TARGET)-ld
 CC = $(TARGET)-gcc
 DB = $(TARGET)-gdb
 
-all: 
-	$(AS) $(FLAGS) s.s -o s.o
-	$(CC) $(FLAGS) -O1 -c -o c.o c.c
-	$(LD) -T ld.ld s.o c.o -o elf.elf
-	$(TARGET)-objdump -d elf.elf
-	$(TARGET)-objcopy -O binary elf.elf bin.bin
+all: core_cm3.o system_stm32f10x.o startup.o
+
+startup.o: CMSIS/startup_stm32f10x_ld_vl.s Makefile
+	$(AS) $(FLAGS) -o $@ -c $<
+
+system_stm32f10x.o: CMSIS/system_stm32f10x.c CMSIS/system_stm32f10x.h CMSIS/stm32f10x.h Makefile
+	$(CC) $(FLAGS) -o $@ -c $<
+
+core_cm3.o: CMSIS/core_cm3.c CMSIS/core_cm3.h Makefile
+	$(CC) $(FLAGS) -o $@ -c $<
+
+#	$(AS) $(FLAGS) s.s -o s.o
+#	$(CC) $(FLAGS) -O1 -c -o c.o c.c
+#	$(LD) -T ld.ld s.o c.o -o elf.elf
+#	$(TARGET)-objdump -d elf.elf
+#	$(TARGET)-objcopy -O binary elf.elf bin.bin
 
 clean:
 	rm *.o *.elf *.bin
