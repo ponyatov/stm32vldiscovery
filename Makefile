@@ -1,12 +1,13 @@
 TARGET = arm-none-eabi
-STARTUP = startup_stm32f10x_ld_vl.s
+STARTUP = startup_stm32f10x_md_vl.s
 
 #FLAGS = -mcpu=arm926ej-s -g
 
 CMSIS_CORE = CMSIS/CM3/CoreSupport
 CMSIS_DEVICE = CMSIS/CM3/DeviceSupport/ST/STM32F10x
+CMSIS_PERIPH = CMSIS/CM3/DeviceSupport/ST/STM32F10x_periph/inc
 
-C_INCLUDE_PATH = -I $(CMSIS_CORE) -I $(CMSIS_DEVICE)
+C_INCLUDE_PATH = -I $(CMSIS_CORE) -I $(CMSIS_DEVICE) -I $(CMSIS_PERIPH) -I stm32blink/inc
  
 FLAGS = -mthumb -mcpu=cortex-m3 -g $(C_INCLUDE_PATH)
 
@@ -17,10 +18,13 @@ DB = $(TARGET)-gdb
 
 all: firmware.elf
 
-firmware.elf: core_cm3.o system_stm32f10x.o startup.o main.o ld.ld Makefile
-	$(LD) -T ld.ld core_cm3.o system_stm32f10x.o startup.o -o $@
+firmware.elf: core_cm3.o system_stm32f10x.o startup.o main.o STM32vldiscovery.o ld.ld Makefile
+	$(LD) -T ld.ld core_cm3.o system_stm32f10x.o startup.o main.o STM32vldiscovery.o -o $@
 	
 main.o: stm32blink/src/main.c Makefile
+	$(CC) $(FLAGS) -o $@ -c $<
+	
+STM32vldiscovery.o: stm32blink/src/STM32vldiscovery.c Makefile
 	$(CC) $(FLAGS) -o $@ -c $<
 
 startup.o: $(CMSIS_DEVICE)/startup/$(STARTUP) Makefile
